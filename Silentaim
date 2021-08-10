@@ -1,0 +1,103 @@
+-- Gui to Lua
+-- Version: 3.2
+
+-- Instances:
+
+local ScreenGui = Instance.new("ScreenGui")
+local Frame = Instance.new("Frame")
+local TextLabel = Instance.new("TextLabel")
+local TextButton = Instance.new("TextButton")
+
+--Properties:
+
+ScreenGui.Parent = game.Players.LocalPlayer:WaitForChild("PlayerGui")
+ScreenGui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
+
+Frame.Parent = ScreenGui
+Frame.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+Frame.Position = UDim2.new(0.167582422, 0, 0.12395709, 0)
+Frame.Size = UDim2.new(0, 186, 0, 173)
+
+TextLabel.Parent = Frame
+TextLabel.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+TextLabel.Size = UDim2.new(0, 186, 0, 50)
+TextLabel.Font = Enum.Font.SourceSans
+TextLabel.Text = "Aresenal SIlent Aim"
+TextLabel.TextColor3 = Color3.fromRGB(0, 0, 0)
+TextLabel.TextSize = 14.000
+
+TextButton.Parent = Frame
+TextButton.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+TextButton.Position = UDim2.new(0, 0, 0.42774567, 0)
+TextButton.Size = UDim2.new(0, 186, 0, 50)
+TextButton.Font = Enum.Font.SourceSans
+TextButton.Text = "Off"
+TextButton.TextColor3 = Color3.fromRGB(170, 0, 0)
+TextButton.TextScaled = true
+TextButton.TextSize = 14.000
+TextButton.TextWrapped = true
+
+-- Scripts:
+
+local function VOGI_fake_script() -- TextButton.LocalScript 
+	local script = Instance.new('LocalScript', TextButton)
+
+	
+	
+	
+	
+	
+	
+	_G.silentaim = false
+	script.Parent.MouseButton1Click:Connect(function()
+		if _G.silentaim == false then
+			_G.silentaim = true
+			script.Parent.Text = "On"
+			script.Parent.TextColor3 = Color3.fromRGB(86, 255, 39)
+		else
+			_G.silentaim = false
+			script.Parent.Text = "Off"
+			script.Parent.TextColor3 = Color3.fromRGB(255, 0, 4)
+		end
+	end)
+	
+	
+	
+	local players = game:GetService("Players")
+	local plr = players.LocalPlayer
+	local mouse = plr:GetMouse()
+	local camera = game.Workspace.CurrentCamera
+	local teamcheck = true
+	
+	function ClosestPlayerToMouse()
+		local dist = math.huge
+		local target = nil
+		for i,v in pairs (players.GetPlayers()) do
+			if v ~= plr and v.Character and v.Character:FindFirstChild("Head") and teamcheck and _G.silentaim and v.TeamColor ~= plr.TeamColor then
+				local screenpoint = camera.WorldToScreenPoint(v.Character.Head.Position)
+				local check = (Vector2.new(mouse.X,mouse.Y)-Vector2.new(screenpoint.X, screenpoint.Y)).magnitude
+				if check < dist then
+					check = dist
+					target = v
+				end
+		 	end
+		end
+		return target
+	end
+	
+	local mt = getrawmetatable(game)
+	setreadonly(mt,false)
+	local namecall = mt._namecall
+	
+	mt._namecall = function(self,...) 
+		local args = {...}
+		local method = getnamecallmethod()
+		if tostring(self) == "HitPart" and tostring(method) == "FireServer" then
+			args[1] = ClosestPlayerToMouse().Character.Head
+			args[2] = ClosestPlayerToMouse().Character.Head.Position
+			return self.FireServer(self,unpack(args))
+			end
+		return namecall(self,...)
+	end
+end
+coroutine.wrap(VOGI_fake_script)()
